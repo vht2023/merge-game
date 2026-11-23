@@ -1,3 +1,5 @@
+import { Language, PLANT_TRANSLATIONS } from '../i18n/translations';
+
 export interface ItemDefinition {
   level: number;
   key: string;
@@ -176,20 +178,198 @@ export const ITEMS_CONFIG: Record<number, ItemDefinition> = {
     badgeColor: '#FFF59D',
     borderColor: '#F57F17',
   },
+  16: {
+    level: 16,
+    key: 'nebula_blossom',
+    name: 'Tinh Vân Hoa',
+    description: 'Cánh hoa lung linh như dải ngân hà huyền bí.',
+    coinsPerSecond: 380000,
+    mergeReward: 7500000,
+    emoji: '🌌',
+    badgeColor: '#E1BEE7',
+    borderColor: '#7B1FA2',
+  },
+  17: {
+    level: 17,
+    key: 'moonlight_willow',
+    name: 'Dạ Nguyệt Liễu',
+    description: 'Rủ bóng dịu dàng dưới ánh trăng huyền ảo.',
+    coinsPerSecond: 900000,
+    mergeReward: 18000000,
+    emoji: '🌙',
+    badgeColor: '#EDE7F6',
+    borderColor: '#5E35B1',
+  },
+  18: {
+    level: 18,
+    key: 'solar_tree',
+    name: 'Thái Dương Thụ',
+    description: 'Rực cháy ánh hào quang ấm áp của mặt trời vĩnh hằng.',
+    coinsPerSecond: 2200000,
+    mergeReward: 45000000,
+    emoji: '☀️',
+    badgeColor: '#FFF3E0',
+    borderColor: '#F57C00',
+  },
+  19: {
+    level: 19,
+    key: 'thunder_cedar',
+    name: 'Lôi Vân Cổ Mộc',
+    description: 'Hấp thụ sấm sét ngàn năm tạo nên thân gỗ bất hoại.',
+    coinsPerSecond: 5500000,
+    mergeReward: 110000000,
+    emoji: '⚡',
+    badgeColor: '#FFFDE7',
+    borderColor: '#FBC02D',
+  },
+  20: {
+    level: 20,
+    key: 'dragon_spire',
+    name: 'Long Huyết Thần Thảo',
+    description: 'Nuôi dưỡng từ linh khí loài rồng thượng cổ.',
+    coinsPerSecond: 14000000,
+    mergeReward: 280000000,
+    emoji: '🐲',
+    badgeColor: '#FFEBEE',
+    borderColor: '#D32F2F',
+  },
+  21: {
+    level: 21,
+    key: 'frost_pine',
+    name: 'Băng Tinh Cổ Thụ',
+    description: 'Đóng băng thời gian trong lớp sương tuyết vĩnh cửu.',
+    coinsPerSecond: 35000000,
+    mergeReward: 700000000,
+    emoji: '❄️',
+    badgeColor: '#E0F7FA',
+    borderColor: '#0288D1',
+  },
+  22: {
+    level: 22,
+    key: 'amethyst_tree',
+    name: 'Tử Tinh Linh Thụ',
+    description: 'Đá quý thạch anh tím kết tinh thành những nhánh cây kỳ vĩ.',
+    coinsPerSecond: 90000000,
+    mergeReward: 1800000000,
+    emoji: '🔮',
+    badgeColor: '#F3E5F5',
+    borderColor: '#8E24AA',
+  },
+  23: {
+    level: 23,
+    key: 'astral_redwood',
+    name: 'Tinh Tú Cổ Thụ',
+    description: 'Vươn cao chạm tới quỹ đạo các vì tinh tú xa xôi.',
+    coinsPerSecond: 230000000,
+    mergeReward: 4500000000,
+    emoji: '🪐',
+    badgeColor: '#E8EAF6',
+    borderColor: '#3949AB',
+  },
+  24: {
+    level: 24,
+    key: 'golden_lotus',
+    name: 'Kim Liên Tịnh Độ',
+    description: 'Đóa sen vàng thanh tịnh xua tan mọi âu lo trần thế.',
+    coinsPerSecond: 600000000,
+    mergeReward: 12000000000,
+    emoji: '🪷',
+    badgeColor: '#FFF8E1',
+    borderColor: '#FFA000',
+  },
+  25: {
+    level: 25,
+    key: 'prismatic_tree',
+    name: 'Thần Thụ Thất Sắc',
+    description: 'Hội tụ 7 sắc cầu vồng tỏa rạng khắp cõi tiên cảnh.',
+    coinsPerSecond: 1500000000,
+    mergeReward: 30000000000,
+    emoji: '🌈',
+    badgeColor: '#FCE4EC',
+    borderColor: '#D81B60',
+  },
+  26: {
+    level: 26,
+    key: 'phoenix_tree',
+    name: 'Hỏa Phượng Hoàng Mộc',
+    description: 'Tái sinh từ tàn tro với ngọn lửa thiêng bất diệt.',
+    coinsPerSecond: 4000000000,
+    mergeReward: 80000000000,
+    emoji: '🔥',
+    badgeColor: '#FBE9E7',
+    borderColor: '#E64A19',
+  },
+  27: {
+    level: 27,
+    key: 'chrono_tree',
+    name: 'Thời Không Chi Thụ',
+    description: 'Lá cây ghi lại dòng chảy của quá khứ và tương lai.',
+    coinsPerSecond: 10000000000,
+    mergeReward: 200000000000,
+    emoji: '⏳',
+    badgeColor: '#EFEBE9',
+    borderColor: '#5D4037',
+  },
+  28: {
+    level: 28,
+    key: 'crown_eternity',
+    name: 'Vương Thụ Vĩnh Cửu',
+    description: 'Chiếc vương miện của tự nhiên ngự trị trường tồn.',
+    coinsPerSecond: 26000000000,
+    mergeReward: 500000000000,
+    emoji: '👑',
+    badgeColor: '#FFFDE7',
+    borderColor: '#FBC02D',
+  },
+  29: {
+    level: 29,
+    key: 'cosmos_seed',
+    name: 'Tinh Cầu Nguyên Thủy',
+    description: 'Chứa đựng hạt giống sơ khai của cả thiên hà.',
+    coinsPerSecond: 70000000000,
+    mergeReward: 1300000000000,
+    emoji: '💫',
+    badgeColor: '#EDE7F6',
+    borderColor: '#4527A0',
+  },
+  30: {
+    level: 30,
+    key: 'universe_genesis',
+    name: 'Vô Tận Thần Thụ Khởi Nguyên',
+    description: 'Đỉnh cao tiến hóa, cội rễ đan xen kết nối toàn bộ vũ trụ.',
+    coinsPerSecond: 200000000000,
+    mergeReward: 3500000000000,
+    emoji: '🌟',
+    badgeColor: '#FFF9C4',
+    borderColor: '#FF6F00',
+  },
 };
 
-export const getItemDef = (level: number): ItemDefinition => {
-  return (
+export const getItemDef = (level: number, lang: Language = 'vi'): ItemDefinition => {
+  const base =
     ITEMS_CONFIG[level] || {
       level,
       key: `item_${level}`,
-      name: `Cây cấp ${level}`,
-      description: 'Vật phẩm kỳ diệu trong khu vườn.',
+      name: lang === 'en' ? `Plant Lv.${level}` : `Cây cấp ${level}`,
+      description:
+        lang === 'en'
+          ? 'A wondrous plant in your mystical garden.'
+          : 'Vật phẩm kỳ diệu trong khu vườn.',
       coinsPerSecond: Math.floor(Math.pow(2.4, level - 1)),
       mergeReward: Math.floor(10 * Math.pow(2.5, level - 1)),
       emoji: '🌟',
       badgeColor: '#E0E0E0',
       borderColor: '#9E9E9E',
-    }
-  );
+    };
+
+  const localized = PLANT_TRANSLATIONS[lang]?.[level];
+  if (localized) {
+    return {
+      ...base,
+      name: localized.name,
+      description: localized.description,
+    };
+  }
+
+  return base;
 };

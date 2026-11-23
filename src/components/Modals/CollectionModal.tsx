@@ -10,6 +10,7 @@ import {
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { getItemDef } from '../../config/itemsConfig';
 import { formatNumber } from '../../core/mathUtils';
+import { TRANSLATIONS } from '../../i18n/translations';
 import { soundService } from '../../services/soundService';
 import { useGameStore } from '../../store/useGameStore';
 
@@ -23,9 +24,11 @@ export const CollectionModal: React.FC<CollectionModalProps> = ({
   onClose,
 }) => {
   const discoveredLevels = useGameStore((state) => state.discoveredLevels);
+  const lang = useGameStore((state) => state.settings.language || 'vi');
 
   if (!visible) return null;
 
+  const t = TRANSLATIONS[lang].collection;
   const totalLevels = GAME_CONFIG.ECONOMY.MAX_LEVEL;
   const progressPercent = Math.round(
     (discoveredLevels.length / totalLevels) * 100
@@ -38,10 +41,9 @@ export const CollectionModal: React.FC<CollectionModalProps> = ({
           {/* Header */}
           <View style={styles.header}>
             <View>
-              <Text style={styles.title}>📖 Sổ Tay Sưu Tầm</Text>
+              <Text style={styles.title}>{t.title}</Text>
               <Text style={styles.subtitle}>
-                Khám phá: {discoveredLevels.length}/{totalLevels} loài cây (
-                {progressPercent}%)
+                {t.subtitle(discoveredLevels.length, totalLevels, progressPercent)}
               </Text>
             </View>
             <TouchableOpacity
@@ -74,7 +76,7 @@ export const CollectionModal: React.FC<CollectionModalProps> = ({
             {Array.from({ length: totalLevels }).map((_, i) => {
               const level = i + 1;
               const isDiscovered = discoveredLevels.includes(level);
-              const def = getItemDef(level);
+              const def = getItemDef(level, lang);
 
               return (
                 <View
@@ -119,24 +121,24 @@ export const CollectionModal: React.FC<CollectionModalProps> = ({
                         !isDiscovered && styles.itemNameLocked,
                       ]}
                     >
-                      {isDiscovered ? def.name : `Cấp ${level} (Chưa mở khóa)`}
+                      {isDiscovered
+                        ? def.name
+                        : `${t.levelLabel(level)} (${t.lockedName})`}
                     </Text>
                     <Text style={styles.itemDesc}>
-                      {isDiscovered
-                        ? def.description
-                        : `Hãy ghép 2 cây Cấp ${level - 1} để phát hiện loài cây này!`}
+                      {isDiscovered ? def.description : t.lockedDesc}
                     </Text>
 
                     {isDiscovered && (
                       <View style={styles.statsRow}>
                         <View style={styles.statChip}>
                           <Text style={styles.statChipText}>
-                            🌾 +{formatNumber(def.coinsPerSecond)}/s
+                            🌾 {t.generates(formatNumber(def.coinsPerSecond))}
                           </Text>
                         </View>
                         <View style={styles.statChip}>
                           <Text style={styles.statChipText}>
-                            🎁 Thưởng: +{formatNumber(def.mergeReward)} 🪙
+                            🎁 {t.mergeReward(formatNumber(def.mergeReward))} 🪙
                           </Text>
                         </View>
                       </View>

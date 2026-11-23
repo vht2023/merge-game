@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { getItemDef } from '../../config/itemsConfig';
+import { TRANSLATIONS } from '../../i18n/translations';
 import { adService } from '../../services/adService';
 import { hapticService } from '../../services/hapticService';
 import { soundService } from '../../services/soundService';
@@ -26,6 +27,9 @@ export const FlyingGift: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const unlockedMaxLevel = useGameStore((state) => state.unlockedMaxLevel);
   const spawnGiftItem = useGameStore((state) => state.spawnGiftItem);
+  const lang = useGameStore((state) => state.settings.language || 'vi');
+
+  const t = TRANSLATIONS[lang].alerts;
 
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
@@ -89,15 +93,15 @@ export const FlyingGift: React.FC = () => {
 
     // Reward level: unlockedMaxLevel - 2 (minimum level 1)
     const rewardLevel = Math.max(1, unlockedMaxLevel - 2);
-    const itemDef = getItemDef(rewardLevel);
+    const itemDef = getItemDef(rewardLevel, lang);
 
     Alert.alert(
-      'Hộp Quà Kỳ Diệu! 🎈',
-      `Xem 1 video ngắn để nhận ngay [Cấp ${rewardLevel} - ${itemDef.name}] ${itemDef.emoji} vào khu vườn của bạn!`,
+      t.mysteryGiftTitle,
+      t.mysteryGiftBody(rewardLevel, itemDef.name, itemDef.emoji),
       [
-        { text: 'Để Sau', style: 'cancel' },
+        { text: t.later, style: 'cancel' },
         {
-          text: 'Xem Ngay 📺',
+          text: t.watchNow,
           onPress: () => {
             adService.showRewardedAd(() => {
               const success = spawnGiftItem(rewardLevel);
@@ -105,13 +109,13 @@ export const FlyingGift: React.FC = () => {
                 soundService.playLevelUp();
                 hapticService.success();
                 Alert.alert(
-                  'Nhận Quà Thành Công! 🎉',
-                  `Bạn đã nhận được ${itemDef.name} ${itemDef.emoji}!`
+                  t.giftClaimedTitle,
+                  t.giftClaimedBody(itemDef.name, itemDef.emoji)
                 );
               } else {
                 Alert.alert(
-                  'Khu Vườn Đã Đầy!',
-                  'Khu vườn không còn ô trống. Quà đã được chuyển thành 500 xu 🪙!'
+                  t.gardenFullTitle,
+                  t.giftFullConverted
                 );
                 useGameStore.getState().addCoins(500);
               }

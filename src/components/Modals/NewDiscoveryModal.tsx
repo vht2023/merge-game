@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { getItemDef } from '../../config/itemsConfig';
 import { formatNumber } from '../../core/mathUtils';
+import { TRANSLATIONS } from '../../i18n/translations';
 import { hapticService } from '../../services/hapticService';
 import { soundService } from '../../services/soundService';
 import { useGameStore } from '../../store/useGameStore';
@@ -13,6 +14,7 @@ export const NewDiscoveryModal: React.FC = () => {
   const dismissNewDiscovery = useGameStore(
     (state) => state.dismissNewDiscovery
   );
+  const lang = useGameStore((state) => state.settings.language || 'vi');
 
   const isVisible = newlyDiscoveredLevel !== null;
 
@@ -25,7 +27,8 @@ export const NewDiscoveryModal: React.FC = () => {
 
   if (!isVisible || newlyDiscoveredLevel === null) return null;
 
-  const def = getItemDef(newlyDiscoveredLevel);
+  const t = TRANSLATIONS[lang].discovery;
+  const def = getItemDef(newlyDiscoveredLevel, lang);
 
   const handleDismiss = () => {
     soundService.playPop();
@@ -38,10 +41,8 @@ export const NewDiscoveryModal: React.FC = () => {
       <View style={styles.overlay}>
         <View style={styles.card}>
           <Text style={styles.stars}>✨ 🎉 ✨</Text>
-          <Text style={styles.title}>PHÁT HIỆN MỚI!</Text>
-          <Text style={styles.subtitle}>
-            Bạn đã nuôi dưỡng và mở khóa thành công một loài cây mới:
-          </Text>
+          <Text style={styles.title}>{t.title}</Text>
+          <Text style={styles.subtitle}>{t.subtitle}</Text>
 
           {/* Plant Badge Card */}
           <View
@@ -59,7 +60,7 @@ export const NewDiscoveryModal: React.FC = () => {
                 { backgroundColor: def.borderColor },
               ]}
             >
-              <Text style={styles.levelTagText}>Cấp {def.level}</Text>
+              <Text style={styles.levelTagText}>{t.level(def.level)}</Text>
             </View>
             <Text style={styles.emoji}>{def.emoji}</Text>
             <Text style={styles.name}>{def.name}</Text>
@@ -68,7 +69,7 @@ export const NewDiscoveryModal: React.FC = () => {
 
           {/* Bonus reward banner */}
           <View style={styles.bonusBanner}>
-            <Text style={styles.bonusLabel}>Thưởng Mở Khóa:</Text>
+            <Text style={styles.bonusLabel}>{t.bonusReward}</Text>
             <Text style={styles.bonusValue}>
               +{formatNumber(def.mergeReward)} 🪙
             </Text>
@@ -79,7 +80,7 @@ export const NewDiscoveryModal: React.FC = () => {
             onPress={handleDismiss}
             activeOpacity={0.8}
           >
-            <Text style={styles.claimButtonText}>Tuyệt Vời! 🌟</Text>
+            <Text style={styles.claimButtonText}>{t.buttonText}</Text>
           </TouchableOpacity>
         </View>
       </View>

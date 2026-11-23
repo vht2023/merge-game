@@ -2,27 +2,42 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { calculateTotalCoinsPerSecond } from '../../core/gridLogic';
 import { formatNumber, formatTime } from '../../core/mathUtils';
+import { TRANSLATIONS } from '../../i18n/translations';
 import { hapticService } from '../../services/hapticService';
 import { soundService } from '../../services/soundService';
 import { useGameStore } from '../../store/useGameStore';
 
 interface TopBarProps {
   onOpenSettings: () => void;
+  onOpenDailyRewards: () => void;
   nextRegenSeconds: number;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ onOpenSettings, nextRegenSeconds }) => {
+export const TopBar: React.FC<TopBarProps> = ({
+  onOpenSettings,
+  onOpenDailyRewards,
+  nextRegenSeconds,
+}) => {
   const coins = useGameStore((state) => state.coins);
   const energy = useGameStore((state) => state.energy);
   const maxEnergy = useGameStore((state) => state.maxEnergy);
   const grid = useGameStore((state) => state.grid);
+  const isDailyAvailable = useGameStore((state) => state.isDailyAvailable());
+  const lang = useGameStore((state) => state.settings.language || 'vi');
 
+  const t = TRANSLATIONS[lang].hud;
   const coinsPerSec = calculateTotalCoinsPerSecond(grid);
 
   const handleSettingsPress = () => {
     soundService.playPop();
     hapticService.selection();
     onOpenSettings();
+  };
+
+  const handleDailyPress = () => {
+    soundService.playPop();
+    hapticService.selection();
+    onOpenDailyRewards();
   };
 
   return (
@@ -44,18 +59,28 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenSettings, nextRegenSeconds
             {energy}/{maxEnergy}
           </Text>
           <Text style={styles.statSubText}>
-            {energy >= maxEnergy ? 'Đầy' : `+1s: ${formatTime(nextRegenSeconds)}`}
+            {energy >= maxEnergy ? t.energyFull : t.energyRegen(formatTime(nextRegenSeconds))}
           </Text>
         </View>
       </View>
 
+      {/* Daily Gift Button */}
+      <TouchableOpacity
+        style={styles.iconButton}
+        onPress={handleDailyPress}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.buttonIcon}>🎁</Text>
+        {isDailyAvailable && <View style={styles.redBadge} />}
+      </TouchableOpacity>
+
       {/* Settings Button */}
       <TouchableOpacity
-        style={styles.settingsButton}
+        style={styles.iconButton}
         onPress={handleSettingsPress}
         activeOpacity={0.7}
       >
-        <Text style={styles.settingsIcon}>⚙️</Text>
+        <Text style={styles.buttonIcon}>⚙️</Text>
       </TouchableOpacity>
     </View>
   );
@@ -66,9 +91,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 10,
-    gap: 10,
+    gap: 8,
   },
   statCard: {
     flex: 1,
@@ -76,8 +101,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.92)',
     borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
     borderWidth: 2,
     borderColor: '#E0E0E0',
     shadowColor: '#000',
@@ -87,26 +112,26 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   statIcon: {
-    fontSize: 22,
-    marginRight: 8,
+    fontSize: 20,
+    marginRight: 6,
   },
   statTextGroup: {
     flexDirection: 'column',
   },
   statValue: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
     color: '#1B5E20',
   },
   statSubText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: '#689F38',
   },
-  settingsButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  iconButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: 'rgba(255, 255, 255, 0.92)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -117,8 +142,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    position: 'relative',
   },
-  settingsIcon: {
-    fontSize: 20,
+  buttonIcon: {
+    fontSize: 19,
+  },
+  redBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#E53935',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
   },
 });

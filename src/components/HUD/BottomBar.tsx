@@ -8,6 +8,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { GAME_CONFIG } from '../../config/gameConfig';
+import { TRANSLATIONS } from '../../i18n/translations';
 import { adService } from '../../services/adService';
 import { hapticService } from '../../services/hapticService';
 import { soundService } from '../../services/soundService';
@@ -23,7 +24,9 @@ export const BottomBar: React.FC<BottomBarProps> = ({ onOpenCollection }) => {
   const maxEnergy = useGameStore((state) => state.maxEnergy);
   const refillEnergy = useGameStore((state) => state.refillEnergy);
   const discoveredLevels = useGameStore((state) => state.discoveredLevels);
+  const lang = useGameStore((state) => state.settings.language || 'vi');
 
+  const t = TRANSLATIONS[lang];
   const spawnerScale = useSharedValue(1);
 
   const handleSpawnPress = () => {
@@ -36,26 +39,31 @@ export const BottomBar: React.FC<BottomBarProps> = ({ onOpenCollection }) => {
     const result = spawn();
 
     if (result.success) {
-      soundService.playPop();
-      hapticService.light();
+      if (result.spawnedLevel && result.spawnedLevel > 1) {
+        soundService.playLevelUp();
+        hapticService.success();
+      } else {
+        soundService.playPop();
+        hapticService.light();
+      }
     } else {
       hapticService.heavy();
       if (result.reason === 'NO_ENERGY') {
         Alert.alert(
-          'Hết Năng Lượng ⚡',
-          'Bạn đã dùng hết năng lượng! Hãy chờ hồi phục tự nhiên hoặc xem 1 quảng cáo để hồi đầy 30 năng lượng.',
+          t.alerts.noEnergyTitle,
+          t.alerts.noEnergyBody(GAME_CONFIG.ENERGY.MAX),
           [
-            { text: 'Chờ', style: 'cancel' },
+            { text: t.alerts.wait, style: 'cancel' },
             {
-              text: 'Xem Ads Hồi Đầy ⚡',
+              text: t.alerts.watchAd,
               onPress: handleWatchAdForEnergy,
             },
           ]
         );
       } else if (result.reason === 'GRID_FULL') {
         Alert.alert(
-          'Khu Vườn Đã Đầy! 🌸',
-          'Không còn ô trống nào trên bàn cờ. Hãy hợp nhất các cây cùng cấp độ để tạo thêm chỗ trống nhé!'
+          t.alerts.gardenFullTitle,
+          t.alerts.gardenFullBody
         );
       }
     }
@@ -68,7 +76,10 @@ export const BottomBar: React.FC<BottomBarProps> = ({ onOpenCollection }) => {
         refillEnergy();
         soundService.playLevelUp();
         hapticService.success();
-        Alert.alert('Thành Công! 🎉', 'Bạn đã được hồi đầy 30 năng lượng ⚡!');
+        Alert.alert(
+          t.alerts.refillSuccessTitle,
+          t.alerts.refillSuccessBody(GAME_CONFIG.ENERGY.MAX)
+        );
       },
       () => {
         // Dismissed
@@ -97,7 +108,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({ onOpenCollection }) => {
         activeOpacity={0.7}
       >
         <Text style={styles.sideButtonIcon}>📖</Text>
-        <Text style={styles.sideButtonText}>Sổ Tay</Text>
+        <Text style={styles.sideButtonText}>{t.hud.book}</Text>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>
             {discoveredLevels.length}/{GAME_CONFIG.ECONOMY.MAX_LEVEL}
@@ -117,7 +128,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({ onOpenCollection }) => {
         >
           <View style={styles.spawnerContent}>
             <Text style={styles.spawnerEmoji}>🌱</Text>
-            <Text style={styles.spawnerTitle}>Gieo Hạt</Text>
+            <Text style={styles.spawnerTitle}>{t.hud.plant}</Text>
             <View style={styles.costBadge}>
               <Text style={styles.costText}>-1 ⚡</Text>
             </View>
@@ -135,9 +146,9 @@ export const BottomBar: React.FC<BottomBarProps> = ({ onOpenCollection }) => {
         activeOpacity={0.7}
       >
         <Text style={styles.sideButtonIcon}>📺</Text>
-        <Text style={styles.sideButtonText}>Nạp ⚡</Text>
+        <Text style={styles.sideButtonText}>{t.hud.refill}</Text>
         <View style={[styles.badge, styles.adBadge]}>
-          <Text style={styles.badgeText}>+30</Text>
+          <Text style={styles.badgeText}>+{GAME_CONFIG.ENERGY.MAX}</Text>
         </View>
       </TouchableOpacity>
     </View>

@@ -1,19 +1,29 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { GAME_CONFIG } from '../config/gameConfig';
-import { CellItem, DropResult, handleDrop, spawnItem } from '../core/gridLogic';
+import { CellItem, DropResult, findEmptyIndices, handleDrop, spawnItem } from '../core/gridLogic';
+import { Language } from '../i18n/translations';
 import { mmkvStorage } from './storage';
 
 export interface GameSettings {
   soundEnabled: boolean;
   hapticEnabled: boolean;
   musicEnabled: boolean;
+  language: Language;
 }
 
 export interface GameStats {
   totalMerges: number;
   totalSpawns: number;
   totalCoinsEarned: number;
+}
+
+export interface DailyRewardItem {
+  day: number;
+  coins: number;
+  energy: number;
+  itemLevel: number;
+  title: string;
 }
 
 export interface GameStoreState {
@@ -26,11 +36,14 @@ export interface GameStoreState {
   newlyDiscoveredLevel: number | null;
   lastActiveTimestamp: number;
   lastEnergyRegenTimestamp: number;
+  dailyStreak: number;
+  lastDailyClaimDate: string | null;
   settings: GameSettings;
   stats: GameStats;
 
   // Actions
-  spawn: () => { success: boolean; reason?: 'NO_ENERGY' | 'GRID_FULL' };
+  spawn: () => { success: boolean; reason?: 'NO_ENERGY' | 'GRID_FULL'; spawnedLevel?: number };
+  autoSpawnSeed: () => { success: boolean; spawnedIndex?: number };
   dropItem: (fromIndex: number, toIndex: number) => DropResult;
   addCoins: (amount: number) => void;
   consumeEnergy: (amount: number) => boolean;
@@ -42,8 +55,12 @@ export interface GameStoreState {
   toggleSound: () => void;
   toggleHaptics: () => void;
   toggleMusic: () => void;
+  setLanguage: (lang: Language) => void;
+  toggleLanguage: () => void;
   resetGame: () => void;
   spawnGiftItem: (level: number) => boolean;
+  isDailyAvailable: () => boolean;
+  claimDailyReward: () => { success: boolean; reward?: DailyRewardItem };
 }
 
 const createInitialGrid = (): (CellItem | null)[] => {
@@ -53,6 +70,31 @@ const createInitialGrid = (): (CellItem | null)[] => {
   grid[12] = { uid: 'seed_init_2', level: 1, isNew: false };
   return grid;
 };
+
+function getLuckySpawnLevel(unlockedMaxLevel: number): number {
+  if (unlockedMaxLevel < 5) return 1;
+  const rand = Math.random();
+  if (unlockedMaxLevel >= 20) {
+    if (rand < 0.10) return 4;
+    if (rand < 0.30) return 3;
+    if (rand < 0.65) return 2;
+    return 1;
+  }
+  if (unlockedMaxLevel >= 12) {
+    if (rand < 0.08) return 4;
+    if (rand < 0.25) return 3;
+    if (rand < 0.55) return 2;
+    return 1;
+  }
+  if (unlockedMaxLevel >= 8) {
+    if (rand < 0.18) return 3;
+    if (rand < 0.45) return 2;
+    return 1;
+  }
+  // >= 5
+  if (rand < 0.30) return 2;
+  return 1;
+}
 
 export const useGameStore = create<GameStoreState>()(
   persist(
@@ -66,10 +108,13 @@ export const useGameStore = create<GameStoreState>()(
       newlyDiscoveredLevel: null,
       lastActiveTimestamp: Date.now(),
       lastEnergyRegenTimestamp: Date.now(),
+      dailyStreak: 0,
+      lastDailyClaimDate: null,
       settings: {
         soundEnabled: true,
         hapticEnabled: true,
         musicEnabled: true,
+        language: 'vi',
       },
       stats: {
         totalMerges: 0,
@@ -83,10 +128,8 @@ export const useGameStore = create<GameStoreState>()(
           return { success: false, reason: 'NO_ENERGY' };
         }
 
-        const { newGrid, spawnedIndex, item } = spawnItem(
-          state.grid,
-          GAME_CONFIG.ECONOMY.SPAWN_BASE_LEVEL
-        );
+        const spawnLvl = getLuckySpawnLevel(state.unlockedMaxLevel);
+        const { newGrid, spawnedIndex, item } = spawnItem(state.grid, spawnLvl);
 
         if (spawnedIndex === null || !item) {
           return { success: false, reason: 'GRID_FULL' };
@@ -102,7 +145,28 @@ export const useGameStore = create<GameStoreState>()(
           },
         }));
 
-        return { success: true };
+        return { success: true, spawnedLevel: spawnLvl };
+      },
+
+      autoSpawnSeed: () => {
+        const state = get();
+        const empty = findEmptyIndices(state.grid);
+        if (empty.length === 0) return { success: false };
+
+        // Chance for Level 1 or 2
+        const spawnLvl = state.unlockedMaxLevel >= 5 && Math.random() < 0.25 ? 2 : 1;
+        const { newGrid, spawnedIndex } = spawnItem(state.grid, spawnLvl);
+        if (spawnedIndex === null) return { success: false };
+
+        set((prev) => ({
+          grid: newGrid,
+          stats: {
+            ...prev.stats,
+            totalSpawns: prev.stats.totalSpawns + 1,
+          },
+        }));
+
+        return { success: true, spawnedIndex };
       },
 
       spawnGiftItem: (level: number) => {
@@ -262,7 +326,75 @@ export const useGameStore = create<GameStoreState>()(
         }));
       },
 
+      setLanguage: (lang: Language) => {
+        set((prev) => ({
+          settings: { ...prev.settings, language: lang },
+        }));
+      },
+
+      toggleLanguage: () => {
+        set((prev) => ({
+          settings: {
+            ...prev.settings,
+            language: (prev.settings.language || 'vi') === 'vi' ? 'en' : 'vi',
+          },
+        }));
+      },
+
+      isDailyAvailable: () => {
+        const state = get();
+        const todayStr = new Date().toISOString().split('T')[0];
+        return state.lastDailyClaimDate !== todayStr;
+      },
+
+      claimDailyReward: () => {
+        const state = get();
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (state.lastDailyClaimDate === todayStr) {
+          return { success: false };
+        }
+
+        let newStreak = (state.dailyStreak || 0) + 1;
+        if (newStreak > 7) {
+          newStreak = 1;
+        }
+
+        const rewardIndex = (newStreak - 1) % GAME_CONFIG.DAILY_REWARDS.length;
+        const reward = GAME_CONFIG.DAILY_REWARDS[rewardIndex];
+
+        let newGrid = state.grid;
+        if (reward.itemLevel > 0) {
+          const spawnRes = spawnItem(state.grid, reward.itemLevel);
+          if (spawnRes.spawnedIndex !== null) {
+            newGrid = spawnRes.newGrid;
+          }
+        }
+
+        set((prev) => ({
+          dailyStreak: newStreak,
+          lastDailyClaimDate: todayStr,
+          coins: prev.coins + reward.coins,
+          energy: Math.min(prev.maxEnergy, prev.energy + reward.energy),
+          grid: newGrid,
+          unlockedMaxLevel:
+            reward.itemLevel > 0
+              ? Math.max(prev.unlockedMaxLevel, reward.itemLevel)
+              : prev.unlockedMaxLevel,
+          discoveredLevels:
+            reward.itemLevel > 0 && !prev.discoveredLevels.includes(reward.itemLevel)
+              ? [...prev.discoveredLevels, reward.itemLevel].sort((a, b) => a - b)
+              : prev.discoveredLevels,
+          stats: {
+            ...prev.stats,
+            totalCoinsEarned: prev.stats.totalCoinsEarned + reward.coins,
+          },
+        }));
+
+        return { success: true, reward };
+      },
+
       resetGame: () => {
+        const currentLang = get().settings.language || 'vi';
         set({
           grid: createInitialGrid(),
           coins: GAME_CONFIG.ECONOMY.STARTING_COINS,
@@ -273,6 +405,12 @@ export const useGameStore = create<GameStoreState>()(
           newlyDiscoveredLevel: null,
           lastActiveTimestamp: Date.now(),
           lastEnergyRegenTimestamp: Date.now(),
+          dailyStreak: 0,
+          lastDailyClaimDate: null,
+          settings: {
+            ...get().settings,
+            language: currentLang,
+          },
           stats: {
             totalMerges: 0,
             totalSpawns: 0,

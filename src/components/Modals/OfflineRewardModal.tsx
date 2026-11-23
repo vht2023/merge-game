@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { formatNumber } from '../../core/mathUtils';
+import { TRANSLATIONS } from '../../i18n/translations';
 import { adService } from '../../services/adService';
 import { hapticService } from '../../services/hapticService';
 import { soundService } from '../../services/soundService';
@@ -20,13 +21,17 @@ export const OfflineRewardModal: React.FC<OfflineRewardModalProps> = ({
   onClose,
 }) => {
   const addCoins = useGameStore((state) => state.addCoins);
+  const lang = useGameStore((state) => state.settings.language || 'vi');
 
   if (!visible || earnedCoins <= 0) return null;
 
+  const t = TRANSLATIONS[lang].offline;
   const hours = Math.floor(elapsedSeconds / 3600);
   const minutes = Math.floor((elapsedSeconds % 3600) / 60);
   const timeString =
-    hours > 0 ? `${hours} giờ ${minutes} phút` : `${minutes} phút`;
+    hours > 0
+      ? `${hours} ${t.hours} ${minutes} ${t.minutes}`
+      : `${minutes} ${t.minutes}`;
 
   const handleClaimNormal = () => {
     soundService.playCoin();
@@ -55,11 +60,8 @@ export const OfflineRewardModal: React.FC<OfflineRewardModalProps> = ({
       <View style={styles.overlay}>
         <View style={styles.card}>
           <Text style={styles.headerEmoji}>🌸</Text>
-          <Text style={styles.title}>Chào Mừng Trở Lại!</Text>
-          <Text style={styles.subtitle}>
-            Trong khi bạn vắng mặt ({timeString}), khu vườn đã chăm chỉ sinh
-            trưởng và tạo ra:
-          </Text>
+          <Text style={styles.title}>{t.title}</Text>
+          <Text style={styles.subtitle}>{t.subtitle(timeString)}</Text>
 
           <View style={styles.coinContainer}>
             <Text style={styles.coinIcon}>🪙</Text>
@@ -73,7 +75,7 @@ export const OfflineRewardModal: React.FC<OfflineRewardModalProps> = ({
             activeOpacity={0.8}
           >
             <Text style={styles.doubleButtonText}>
-              Nhận X2 ({formatNumber(earnedCoins * 2)} 🪙) 📺
+              {t.doubleButton(formatNumber(earnedCoins * 2))}
             </Text>
           </TouchableOpacity>
 
@@ -83,7 +85,7 @@ export const OfflineRewardModal: React.FC<OfflineRewardModalProps> = ({
             activeOpacity={0.7}
           >
             <Text style={styles.normalButtonText}>
-              Nhận bình thường ({formatNumber(earnedCoins)} 🪙)
+              {t.normalButton(formatNumber(earnedCoins))}
             </Text>
           </TouchableOpacity>
         </View>

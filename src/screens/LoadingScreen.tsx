@@ -8,22 +8,34 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { useGameStore } from '../store/useGameStore';
 
 interface LoadingScreenProps {
   onFinish: () => void;
 }
 
-const TIPS = [
-  '💡 Ghép 2 cây cùng cấp để khám phá giống loài mới!',
-  '⚡ Năng lượng tự hồi phục 1 điểm mỗi 15 giây!',
-  '🪙 Cây cấp càng cao sinh ra càng nhiều xu mỗi giây!',
-  '🎈 Chạm vào bóng bay quà tặng để nhận cây cấp cao!',
-  '📖 Mở Sổ Tay để xem các phần thưởng mở khóa!',
-];
+const TIPS = {
+  vi: [
+    '💡 Ghép 2 cây cùng cấp để khám phá giống loài mới!',
+    '⚡ Năng lượng tự hồi phục 1 điểm mỗi 4 giây!',
+    '🪙 Cây cấp càng cao sinh ra càng nhiều xu mỗi giây!',
+    '🎈 Chạm vào bóng bay quà tặng để nhận cây cấp cao!',
+    '📖 Mở Sổ Tay để xem các phần thưởng mở khóa!',
+  ],
+  en: [
+    '💡 Merge 2 identical plants to discover new species!',
+    '⚡ Energy recovers 1 point every 4 seconds!',
+    '🪙 Higher level plants generate more coins per second!',
+    '🎈 Tap floating mystery balloons to receive rare plants!',
+    '📖 Open Collection Book to view unlock rewards!',
+  ],
+};
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onFinish }) => {
   const [tipIndex, setTipIndex] = useState(0);
   const [percent, setPercent] = useState(0);
+  const lang = useGameStore((state) => state.settings.language || 'vi');
+  const tipsList = TIPS[lang] || TIPS.vi;
 
   // Animations
   const logoScale = useSharedValue(1);
@@ -36,10 +48,10 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onFinish }) => {
   // Rotate tips
   useEffect(() => {
     const tipInterval = setInterval(() => {
-      setTipIndex((prev) => (prev + 1) % TIPS.length);
+      setTipIndex((prev) => (prev + 1) % tipsList.length);
     }, 1200);
     return () => clearInterval(tipInterval);
-  }, []);
+  }, [tipsList.length]);
 
   // Breathing pulse animation on logo
   useEffect(() => {
@@ -111,7 +123,9 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onFinish }) => {
         </Animated.View>
 
         <Text style={styles.title}>MERGE GARDEN</Text>
-        <Text style={styles.subtitle}>Khu Vườn Chữa Lành</Text>
+        <Text style={styles.subtitle}>
+          {lang === 'en' ? 'Healing Garden' : 'Khu Vườn Chữa Lành'}
+        </Text>
       </View>
 
       {/* Loading Progress Section */}
@@ -127,11 +141,17 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onFinish }) => {
 
         {/* Tip text */}
         <View style={styles.tipBox}>
-          <Text style={styles.tipText}>{TIPS[tipIndex]}</Text>
+          <Text style={styles.tipText}>
+            {tipsList[tipIndex % tipsList.length]}
+          </Text>
         </View>
       </View>
 
-      <Text style={styles.footerText}>Phiên bản 1.0.0 • Tải tài nguyên...</Text>
+      <Text style={styles.footerText}>
+        {lang === 'en'
+          ? 'Version 1.0.0 • Loading assets...'
+          : 'Phiên bản 1.0.0 • Tải tài nguyên...'}
+      </Text>
     </Animated.View>
   );
 };

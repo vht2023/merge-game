@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { formatNumber } from '../../core/mathUtils';
+import { TRANSLATIONS } from '../../i18n/translations';
 import { hapticService } from '../../services/hapticService';
 import { soundService } from '../../services/soundService';
 import { useGameStore } from '../../store/useGameStore';
@@ -27,7 +28,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const toggleSound = useGameStore((state) => state.toggleSound);
   const toggleMusic = useGameStore((state) => state.toggleMusic);
   const toggleHaptics = useGameStore((state) => state.toggleHaptics);
+  const setLanguage = useGameStore((state) => state.setLanguage);
   const resetGame = useGameStore((state) => state.resetGame);
+
+  const lang = settings.language || 'vi';
+  const t = TRANSLATIONS[lang].settings;
 
   if (!visible) return null;
 
@@ -43,12 +48,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const handleReset = () => {
     Alert.alert(
-      'Xóa Dữ Liệu Chơi Lại? ⚠️',
-      'Toàn bộ bàn cờ, cấp độ mở khóa và số xu sẽ được khôi phục về trạng thái ban đầu. Bạn có chắc chắn không?',
+      t.resetConfirmTitle,
+      t.resetConfirmBody,
       [
-        { text: 'Hủy', style: 'cancel' },
+        { text: t.cancel, style: 'cancel' },
         {
-          text: 'Xác Nhận Xóa',
+          text: t.confirmReset,
           style: 'destructive',
           onPress: () => {
             resetGame();
@@ -67,7 +72,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <View style={styles.card}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>⚙️ Cài Đặt</Text>
+            <Text style={styles.title}>{t.title}</Text>
             <TouchableOpacity
               onPress={() => {
                 soundService.playPop();
@@ -81,10 +86,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Settings Toggles */}
           <View style={styles.section}>
+            {/* Sound FX */}
             <View style={styles.row}>
               <View style={styles.labelGroup}>
                 <Text style={styles.rowIcon}>🔊</Text>
-                <Text style={styles.rowLabel}>Hiệu Ứng Âm Thanh</Text>
+                <Text style={styles.rowLabel}>{t.sfx}</Text>
               </View>
               <Switch
                 value={settings.soundEnabled}
@@ -97,10 +103,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               />
             </View>
 
+            {/* BGM */}
             <View style={styles.row}>
               <View style={styles.labelGroup}>
                 <Text style={styles.rowIcon}>🎵</Text>
-                <Text style={styles.rowLabel}>Nhạc Nền Thư Giãn (Lofi)</Text>
+                <Text style={styles.rowLabel}>{t.bgm}</Text>
               </View>
               <Switch
                 value={settings.musicEnabled}
@@ -110,10 +117,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               />
             </View>
 
+            {/* Haptics */}
             <View style={styles.row}>
               <View style={styles.labelGroup}>
                 <Text style={styles.rowIcon}>📳</Text>
-                <Text style={styles.rowLabel}>Phản Hồi Rung (Haptic)</Text>
+                <Text style={styles.rowLabel}>{t.haptics}</Text>
               </View>
               <Switch
                 value={settings.hapticEnabled}
@@ -125,21 +133,74 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 thumbColor={settings.hapticEnabled ? '#2E7D32' : '#F5F5F5'}
               />
             </View>
+
+            {/* Language Switcher */}
+            <View style={styles.rowLanguage}>
+              <View style={styles.labelGroup}>
+                <Text style={styles.rowIcon}>🌐</Text>
+                <Text style={styles.rowLabel}>{t.language}</Text>
+              </View>
+              <View style={styles.langButtonGroup}>
+                <TouchableOpacity
+                  style={[
+                    styles.langButton,
+                    lang === 'vi' && styles.langButtonActive,
+                  ]}
+                  onPress={() => {
+                    setLanguage('vi');
+                    soundService.playPop();
+                    hapticService.selection();
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.langButtonText,
+                      lang === 'vi' && styles.langButtonTextActive,
+                    ]}
+                  >
+                    Tiếng Việt
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.langButton,
+                    lang === 'en' && styles.langButtonActive,
+                  ]}
+                  onPress={() => {
+                    setLanguage('en');
+                    soundService.playPop();
+                    hapticService.selection();
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.langButtonText,
+                      lang === 'en' && styles.langButtonTextActive,
+                    ]}
+                  >
+                    English
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
 
           {/* Stats Section */}
           <View style={styles.statsCard}>
-            <Text style={styles.statsTitle}>Thống Kê Trò Chơi</Text>
+            <Text style={styles.statsTitle}>{t.statsTitle}</Text>
             <View style={styles.statLine}>
-              <Text style={styles.statLabel}>Lần Hợp Nhất:</Text>
+              <Text style={styles.statLabel}>{t.totalMerges}</Text>
               <Text style={styles.statVal}>{stats.totalMerges}</Text>
             </View>
             <View style={styles.statLine}>
-              <Text style={styles.statLabel}>Lần Gieo Hạt:</Text>
+              <Text style={styles.statLabel}>{t.totalSpawns}</Text>
               <Text style={styles.statVal}>{stats.totalSpawns}</Text>
             </View>
             <View style={styles.statLine}>
-              <Text style={styles.statLabel}>Tổng Xu Kiếm Được:</Text>
+              <Text style={styles.statLabel}>{t.totalCoins}</Text>
               <Text style={styles.statVal}>
                 {formatNumber(stats.totalCoinsEarned)} 🪙
               </Text>
@@ -152,10 +213,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             onPress={handleReset}
             activeOpacity={0.7}
           >
-            <Text style={styles.resetButtonText}>🔄 Chơi Lại Từ Đầu</Text>
+            <Text style={styles.resetButtonText}>{t.resetBtn}</Text>
           </TouchableOpacity>
 
-          <Text style={styles.versionText}>Merge Garden v1.0.0 (Release Build)</Text>
+          <Text style={styles.versionText}>{t.version}</Text>
         </View>
       </View>
     </Modal>
@@ -207,15 +268,23 @@ const styles = StyleSheet.create({
     color: '#666666',
   },
   section: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 9,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+  },
+  rowLanguage: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
+    gap: 8,
   },
   labelGroup: {
     flexDirection: 'row',
@@ -230,11 +299,42 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333333',
   },
+  langButtonGroup: {
+    flexDirection: 'row',
+    width: '100%',
+    backgroundColor: '#F1F8E9',
+    borderRadius: 12,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: '#C8E6C9',
+  },
+  langButton: {
+    flex: 1,
+    paddingVertical: 7,
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  langButtonActive: {
+    backgroundColor: '#4CAF50',
+    shadowColor: '#2E7D32',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  langButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#558B2F',
+  },
+  langButtonTextActive: {
+    color: '#FFFFFF',
+  },
   statsCard: {
     backgroundColor: '#F1F8E9',
     borderRadius: 14,
     padding: 12,
-    marginBottom: 16,
+    marginBottom: 14,
     borderWidth: 1,
     borderColor: '#DCEDC8',
   },
@@ -264,13 +364,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FFCDD2',
     borderRadius: 14,
-    paddingVertical: 12,
+    paddingVertical: 11,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   resetButtonText: {
     color: '#C62828',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
   },
   versionText: {

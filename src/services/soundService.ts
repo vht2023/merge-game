@@ -17,9 +17,10 @@ class SoundService {
   private bgmPlayer: any = null;
   private isBgmPlaying = false;
   private isMutedForBackground = false;
+  private audioModePromise: Promise<void> | null = null;
 
   constructor() {
-    this.initAudioMode();
+    this.audioModePromise = this.initAudioMode();
     this.setupAppStateListener();
   }
 
@@ -27,9 +28,10 @@ class SoundService {
     if (!setAudioModeAsyncFn) return;
     try {
       await setAudioModeAsyncFn({
+        playsInSilentMode: true,
         playsInSilentModeIOS: true,
-        staysActiveInBackground: false,
-        shouldDuckAndroid: true,
+        interruptionMode: 'mixWithOthers',
+        shouldPlayInBackground: false,
       });
     } catch {
       // Ignore
@@ -62,6 +64,19 @@ class SoundService {
       const player = createAudioPlayerFn(source);
       player.volume = volume;
       player.play();
+
+      if (player && typeof player.addListener === 'function') {
+        const sub = player.addListener('playbackStatusUpdate', (status: any) => {
+          if (status?.didJustFinish) {
+            try {
+              sub?.remove?.();
+              player?.remove?.();
+            } catch {
+              // Ignored
+            }
+          }
+        });
+      }
     } catch {
       // Ignored
     }
@@ -86,6 +101,14 @@ class SoundService {
   public async startBGM() {
     if (!useGameStore.getState().settings.musicEnabled) return;
     if (!createAudioPlayerFn) return;
+
+    if (this.audioModePromise) {
+      try {
+        await this.audioModePromise;
+      } catch {
+        // Ignore
+      }
+    }
 
     if (this.bgmPlayer) {
       this.resumeBGM();

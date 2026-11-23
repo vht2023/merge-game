@@ -80,7 +80,7 @@ export const handleDrop = (
   grid: (CellItem | null)[],
   fromIndex: number,
   toIndex: number,
-  maxLevel: number = 15
+  maxLevel: number = 30
 ): DropResult => {
   // If dropped in the same slot or invalid bounds
   if (
